@@ -45,10 +45,12 @@ export default function App() {
         window.localStorage.setItem('token', res.data.token)
         setMessage(res.data.message)
         redirectToArticles()
-        setSpinnerOn(false)
       })
       .catch(err =>{
         console.error(err)
+      })
+      .finally(() => {
+        setSpinnerOn(false)
       })
     // On success, we should set the token to local storage in a 'token' key,
     // put the server success message in its proper state, and redirect
@@ -125,7 +127,7 @@ export default function App() {
         setMessage(res.data.message)
       })
       .catch(err => {
-        setMessage(err.res.status)
+        err.res.status === 401 ? redirectToLogin() : setMessage(err.res.data.message)
       })
       .finally(() => {
         setSpinnerOn(false)

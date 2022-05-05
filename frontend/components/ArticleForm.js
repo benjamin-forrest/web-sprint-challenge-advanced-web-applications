@@ -27,18 +27,12 @@ export default function ArticleForm(props) {
     // ✨ implement
     // We must submit a new post or update an existing one,
     // depending on the truthyness of the `currentArticle` prop.
-    const id = currentArticle?.articleId
-    currentArticle ? updateArticle(id, values) : postArticle(values)
-    updateArticle(id, values)
+    currentArticle ? updateArticle(currentArticle.article_id, values) : postArticle(values)
     setValues(initialFormValues)
   }
 
-  const isDisabled = () => {
-    // ✨ implement
-    
+  const isDisabled = () => !values.title.trim() || !values.text.trim() || !values.topic
     // Make sure the inputs have some values
-    return !(values.title.trim() && values.text.trim() && values.topic)
-  }
 
   return (
     // ✨ fix the JSX: make the heading display either "Edit" or "Create"
@@ -67,7 +61,8 @@ export default function ArticleForm(props) {
       </select>
       <div className="button-group">
         <button disabled={isDisabled()} id="submitArticle">Submit</button>
-        <button onClick={()=> setCurrentArticleId(null)}>Cancel edit</button>
+        {currentArticle &&
+        <button onClick={()=> setCurrentArticleId(null)}>Cancel edit</button>}
       </div>
     </form>
   )
