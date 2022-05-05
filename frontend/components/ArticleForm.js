@@ -28,12 +28,16 @@ export default function ArticleForm(props) {
     // We must submit a new post or update an existing one,
     // depending on the truthyness of the `currentArticle` prop.
     const id = currentArticle?.articleId
-    currentArticle ? updateArticle({id, values}) : postArticle(values)
+    currentArticle ? updateArticle(id, values) : postArticle(values)
+    updateArticle(id, values)
+    setValues(initialFormValues)
   }
 
   const isDisabled = () => {
     // ✨ implement
+    
     // Make sure the inputs have some values
+    return !(values.title.trim() && values.text.trim() && values.topic)
   }
 
   return (

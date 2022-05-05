@@ -70,7 +70,7 @@ export default function App() {
     // put the server success message in its proper state.
     // If something goes wrong, check the status of the response:
     .catch(err=>{
-      err.res.status === 401 ? redirectToLogin() : console.error(err)
+      err.res.status === 401 ? redirectToLogin() : setMessage(err.res.data.message)
     })
     // if it's a 401 the token might have gone bad, and we should redirect to login.
     // Don't forget to turn off the spinner!
@@ -89,7 +89,7 @@ export default function App() {
       setMessage(res.data.message)
     })
     .catch(err=>{
-      err.res.status === 401 ? redirectToLogin() : console.error(err) 
+      err.res.status === 401 ? redirectToLogin() : setMessage(err.res.data.message) 
     })
     .finally(() =>{
       setSpinnerOn(false)
@@ -98,14 +98,17 @@ export default function App() {
     // to inspect the response from the server.
   }
 
-  const updateArticle = ({ article_id, article }) => {
+  const updateArticle = ( article_id, article ) => {
     // ✨ implement
     setSpinnerOn(true)
     axiosWithAuth().put(`${articlesUrl}/${article_id}`, article)
     .then(res => {
+      setMessage(res.data.message)
+        setArticles(articles.map(art => art.article_id === article_id ? res.data.article : art))
+        setCurrentArticleId(null)
     })
     .catch(err => {
-      err.res.status === 401 ? redirectToLogin() : console.error(err)
+      err.res.status === 401 ? redirectToLogin() : setMessage(err.res.data.message)
     })
     .finally(() => {
       setSpinnerOn(false)
@@ -122,7 +125,7 @@ export default function App() {
         setMessage(res.data.message)
       })
       .catch(err => {
-        console.error(err)
+        setMessage(err.res.status)
       })
       .finally(() => {
         setSpinnerOn(false)
@@ -132,7 +135,7 @@ export default function App() {
   return (
     // ✨ fix the JSX: `Spinner`, `Message`, `LoginForm`, `ArticleForm` and `Articles` expect props ❗
     <React.StrictMode>
-      <Spinner />
+      <Spinner on={spinnerOn}/>
       <Message message={message} />
       <button id="logout" onClick={logout}>Logout from app</button>
       <div id="wrapper" style={{ opacity: spinnerOn ? "0.25" : "1" }}> {/* <-- do not change this line */}
