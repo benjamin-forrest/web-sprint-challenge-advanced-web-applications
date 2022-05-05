@@ -7,7 +7,6 @@ import ArticleForm from './ArticleForm'
 import Spinner from './Spinner'
 import axios from 'axios'
 import axiosWithAuth from '../axios'
-import { response } from 'msw'
 
 const articlesUrl = 'http://localhost:9000/api/articles'
 const loginUrl = 'http://localhost:9000/api/login'
@@ -22,7 +21,7 @@ export default function App() {
   // ✨ Research `useNavigate` in React Router v.6
   const navigate = useNavigate()
   const redirectToLogin = () => { navigate('/') }
-  const redirectToArticles = () => { /* ✨ implement */ }
+  const redirectToArticles = () => { navigate('/articles') }
 
   const logout = () => {
     // ✨ implement
@@ -45,7 +44,7 @@ export default function App() {
       .then(res => {
         window.localStorage.setItem('token', res.data.token)
         setMessage(res.data.message)
-        navigate('/articles')
+        redirectToArticles()
         setSpinnerOn(false)
       })
       .catch(err =>{
@@ -89,8 +88,8 @@ export default function App() {
       setArticles([...articles, res.data.article])
       setMessage(res.data.message)
     })
-    .catch(res=>{
-      debugger
+    .catch(err=>{
+      err.res.status === 401 ? redirectToLogin() : console.error(err) 
     })
     .finally(() =>{
       setSpinnerOn(false)
@@ -101,11 +100,33 @@ export default function App() {
 
   const updateArticle = ({ article_id, article }) => {
     // ✨ implement
+    setSpinnerOn(true)
+    axiosWithAuth().put(`${articlesUrl}/${article_id}`, article)
+    .then(res => {
+    })
+    .catch(err => {
+      err.res.status === 401 ? redirectToLogin() : console.error(err)
+    })
+    .finally(() => {
+      setSpinnerOn(false)
+    })
     // You got this!
   }
 
   const deleteArticle = article_id => {
     // ✨ implement
+    setSpinnerOn(true)
+    axiosWithAuth().delete(`${articlesUrl}/${article_id}`)
+      .then(res => {
+        setArticles(articles.filter(article => article.article_id !== article_id))
+        setMessage(res.data.message)
+      })
+      .catch(err => {
+        console.error(err)
+      })
+      .finally(() => {
+        setSpinnerOn(false)
+      })
   }
 
   return (
@@ -124,8 +145,8 @@ export default function App() {
           <Route path="/" element={<LoginForm login={login}/>} />
           <Route path="articles" element={
             <>
-              <ArticleForm currentArticleId={currentArticleId} postArticle={postArticle} updateArticle={updateArticle}/>
-              <Articles articles={articles} getArticles={getArticles}/>
+              <ArticleForm currentArticle={articles.find(article => article.article_id === currentArticleId)} postArticle={postArticle} updateArticle={updateArticle} setCurrentArticleId={setCurrentArticleId}/>
+              <Articles articles={articles} getArticles={getArticles} setCurrentArticleId={setCurrentArticleId} currentArticleId={currentArticleId} deleteArticle={deleteArticle}/>
             </>
           } />
         </Routes>
