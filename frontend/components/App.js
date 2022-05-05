@@ -6,6 +6,8 @@ import Message from './Message'
 import ArticleForm from './ArticleForm'
 import Spinner from './Spinner'
 import axios from 'axios'
+import axiosWithAuth from '../axios'
+import { response } from 'msw'
 
 const articlesUrl = 'http://localhost:9000/api/articles'
 const loginUrl = 'http://localhost:9000/api/login'
@@ -19,14 +21,17 @@ export default function App() {
 
   // ✨ Research `useNavigate` in React Router v.6
   const navigate = useNavigate()
-  const redirectToLogin = () => { /* ✨ implement */ }
+  const redirectToLogin = () => { navigate('/') }
   const redirectToArticles = () => { /* ✨ implement */ }
 
   const logout = () => {
     // ✨ implement
     // If a token is in local storage it should be removed,
+    window.localStorage?.removeItem('token')
     // and a message saying "Goodbye!" should be set in its proper state.
+    setMessage("Goodbye!")
     // In any case, we should redirect the browser back to the login screen,
+    redirectToLogin()
     // using the helper above.
   }
 
@@ -44,7 +49,7 @@ export default function App() {
         setSpinnerOn(false)
       })
       .catch(err =>{
-        debugger
+        console.error(err)
       })
     // On success, we should set the token to local storage in a 'token' key,
     // put the server success message in its proper state, and redirect
@@ -54,12 +59,25 @@ export default function App() {
   const getArticles = () => {
     // ✨ implement
     // We should flush the message state, turn on the spinner
+    setMessage('')
+    setSpinnerOn(true)
     // and launch an authenticated request to the proper endpoint.
+    axiosWithAuth().get(articlesUrl)
+      .then(res =>{
+        setArticles(res.data.articles)
+        setMessage(res.data.message)
+      })
     // On success, we should set the articles in their proper state and
     // put the server success message in its proper state.
     // If something goes wrong, check the status of the response:
+    .catch(err=>{
+      err.res.status === 401 ? redirectToLogin() : console.error(err)
+    })
     // if it's a 401 the token might have gone bad, and we should redirect to login.
     // Don't forget to turn off the spinner!
+    .finally(() =>{
+      setSpinnerOn(false)
+    })
   }
 
   const postArticle = article => {
@@ -95,7 +113,7 @@ export default function App() {
           <Route path="articles" element={
             <>
               <ArticleForm />
-              <Articles />
+              <Articles articles={articles} getArticles={getArticles}/>
             </>
           } />
         </Routes>
